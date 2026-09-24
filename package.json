@@ -35,10 +35,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_USERNAME/jsonmock-cli.git"
+    "url": "https://github.com/rishbCLN/jsonmock-cli.git"
   },
   "bugs": {
-    "url": "https://github.com/YOUR_USERNAME/jsonmock-cli/issues"
+    "url": "https://github.com/rishbCLN/jsonmock-cli/issues"
   },
-  "homepage": "https://github.com/YOUR_USERNAME/jsonmock-cli#readme"
+  "homepage": "https://github.com/rishbCLN/jsonmock-cli#readme"
 }

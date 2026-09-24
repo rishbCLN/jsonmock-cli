@@ -23,7 +23,7 @@ obvious, and cross-platform.
 ## Getting started
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/jsonmock-cli.git
+git clone https://github.com/rishbCLN/jsonmock-cli.git
 cd jsonmock-cli
 node --test                     # run the suite
 node bin/mockit.mjs db.json     # try it against a JSON file
