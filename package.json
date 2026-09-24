@@ -1,0 +1,44 @@
+{
+  "name": "jsonmock-cli",
+  "version": "0.1.0",
+  "description": "Spin up a fake REST API from a tiny JSON file — in one command. Zero dependencies.",
+  "type": "module",
+  "bin": {
+    "jsonmock-cli": "bin/mockit.mjs"
+  },
+  "scripts": {
+    "test": "node --test",
+    "start": "node bin/mockit.mjs"
+  },
+  "keywords": [
+    "mock",
+    "rest",
+    "api",
+    "server",
+    "json",
+    "cli",
+    "fake-api",
+    "mock-server",
+    "rest-api",
+    "prototyping",
+    "developer-tools",
+    "cross-platform",
+    "zero-dependency"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/jsonmock-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YOUR_USERNAME/jsonmock-cli/issues"
+  },
+  "homepage": "https://github.com/YOUR_USERNAME/jsonmock-cli#readme"
+}
