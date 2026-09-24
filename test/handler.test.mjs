@@ -80,6 +80,18 @@ test('405 for an unsupported method, with an Allow header', () => {
   assert.match(res.headers.Allow, /GET/);
 });
 
+test('HEAD is routed like GET (not 405)', () => {
+  const db = makeDb();
+  const list = computeResponse({ method: 'HEAD', pathname: '/posts' }, db);
+  assert.equal(list.status, 200);
+  assert.equal(list.headers['X-Total-Count'], '2');
+
+  assert.equal(computeResponse({ method: 'HEAD', pathname: '/' }, db).status, 200);
+  assert.equal(computeResponse({ method: 'HEAD', pathname: '/posts/1' }, db).status, 200);
+  assert.equal(computeResponse({ method: 'HEAD', pathname: '/posts/99' }, db).status, 404);
+  assert.equal(computeResponse({ method: 'HEAD', pathname: '/nope' }, db).status, 404);
+});
+
 test('unknown collection -> 404 listing the known collections', () => {
   const res = computeResponse({ method: 'GET', pathname: '/nope' }, makeDb());
   assert.equal(res.status, 404);

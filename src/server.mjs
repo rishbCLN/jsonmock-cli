@@ -26,7 +26,10 @@ function writeResponse(res, status, headers, body) {
     res.writeHead(status, h);
     res.end(buf);
   } else {
-    h['Content-Length'] = '0';
+    // A 204/304 response carries no message body; per RFC 7230 §3.3.2 a server
+    // MUST NOT send Content-Length on those. Setting it (even to "0") is a
+    // protocol violation that strict clients/proxies can reject.
+    if (status !== 204 && status !== 304) h['Content-Length'] = '0';
     res.writeHead(status, h);
     res.end();
   }
@@ -82,7 +85,11 @@ export function createServer(ctx) {
     } catch {
       status = 500;
       try {
-        writeResponse(res, 500, { 'Content-Type': JSON_CT }, JSON.stringify({ error: 'internal server error' }));
+        // Keep CORS on the fallback error path too, otherwise a browser can't
+        // read the 500 (it sees an opaque CORS failure instead). Mirrors the
+        // headers used on every other response.
+        const cors = buildCorsHeaders(corsOrigin, (req && req.headers) || {});
+        writeResponse(res, 500, { ...cors, 'Content-Type': JSON_CT }, JSON.stringify({ error: 'internal server error' }));
       } catch {
         /* response already partially sent */
       }

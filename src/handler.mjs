@@ -63,6 +63,11 @@ function invalidBody(body, db) {
  */
 export function computeResponse(request, db, options = {}) {
   const method = String(request.method || 'GET').toUpperCase();
+  // HEAD is semantically GET without a response body. Route/compute it exactly
+  // like GET (the server drops the body on the wire); otherwise a HEAD request
+  // to a perfectly GET-able resource wrongly returns 405, which breaks health
+  // checks, `curl -I`, and proxies.
+  const routeMethod = method === 'HEAD' ? 'GET' : method;
   let pathname = request.pathname || '/';
   const query = request.query || {};
   const body = request.body;
@@ -70,11 +75,11 @@ export function computeResponse(request, db, options = {}) {
   if (options.rewrites) pathname = applyRewrites(pathname, options.rewrites);
 
   const collections = Object.keys(db);
-  const match = matchRoute(method, pathname, collections);
+  const match = matchRoute(routeMethod, pathname, collections);
 
   switch (match.kind) {
     case 'root':
-      if (method === 'GET') return json(200, collectionSummary(db), null, db);
+      if (routeMethod === 'GET') return json(200, collectionSummary(db), null, db);
       return methodNotAllowed(['GET'], db);
 
     case 'unknown':
@@ -84,11 +89,11 @@ export function computeResponse(request, db, options = {}) {
       return json(404, { error: 'not found' }, null, db);
 
     case 'collection': {
-      if (method === 'GET') {
+      if (routeMethod === 'GET') {
         const { items, total } = listRecords(db, match.collection, query);
         return json(200, items, { 'X-Total-Count': String(total) }, db);
       }
-      if (method === 'POST') {
+      if (routeMethod === 'POST') {
         const bad = invalidBody(body, db);
         if (bad) return bad;
         const res = createRecord(db, match.collection, body);
@@ -99,23 +104,23 @@ export function computeResponse(request, db, options = {}) {
     }
 
     case 'item': {
-      if (method === 'GET') {
+      if (routeMethod === 'GET') {
         const record = getRecord(db, match.collection, match.id);
         return record ? json(200, record, null, db) : notFoundItem(match, db);
       }
-      if (method === 'PUT') {
+      if (routeMethod === 'PUT') {
         const bad = invalidBody(body, db);
         if (bad) return bad;
         const res = replaceRecord(db, match.collection, match.id, body);
         return res.error ? notFoundItem(match, db) : json(200, res.record, null, res.db);
       }
-      if (method === 'PATCH') {
+      if (routeMethod === 'PATCH') {
         const bad = invalidBody(body, db);
         if (bad) return bad;
         const res = patchRecord(db, match.collection, match.id, body);
         return res.error ? notFoundItem(match, db) : json(200, res.record, null, res.db);
       }
-      if (method === 'DELETE') {
+      if (routeMethod === 'DELETE') {
         const res = deleteRecord(db, match.collection, match.id);
         return res.error ? notFoundItem(match, db) : json(200, {}, null, res.db);
       }

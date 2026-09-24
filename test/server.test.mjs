@@ -93,3 +93,55 @@ test('integration: oversized body is rejected with 413', async () => {
     await handle.close();
   }
 });
+
+test('integration: 204 preflight must NOT carry Content-Length (RFC 7230)', async () => {
+  let state = { posts: [] };
+  const handle = await startServer({
+    getDb: () => state,
+    setDb: (db) => { state = db; },
+    options: { port: 0, host: '127.0.0.1', cors: '*' },
+  });
+  try {
+    const res = await request(handle.port, 'OPTIONS', '/posts');
+    assert.equal(res.status, 204);
+    assert.equal(res.headers['content-length'], undefined);
+  } finally {
+    await handle.close();
+  }
+});
+
+test('integration: HEAD /posts -> 200, real headers, empty body', async () => {
+  let state = { posts: [{ id: 1, title: 'a' }, { id: 2, title: 'b' }] };
+  const handle = await startServer({
+    getDb: () => state,
+    setDb: (db) => { state = db; },
+    options: { port: 0, host: '127.0.0.1', cors: '*' },
+  });
+  try {
+    const res = await request(handle.port, 'HEAD', '/posts');
+    assert.equal(res.status, 200);
+    assert.equal(res.headers['x-total-count'], '2');
+    assert.equal(res.headers['access-control-allow-origin'], '*');
+    assert.equal(res.body, '');
+  } finally {
+    await handle.close();
+  }
+});
+
+test('integration: an unexpected 500 still carries CORS headers', async () => {
+  // A BigInt in the db makes JSON.stringify throw inside the server, exercising
+  // the catch-all 500 path. It must still include CORS so a browser can read it.
+  let state = { posts: [{ id: 1, oops: 10n }] };
+  const handle = await startServer({
+    getDb: () => state,
+    setDb: (db) => { state = db; },
+    options: { port: 0, host: '127.0.0.1', cors: '*' },
+  });
+  try {
+    const res = await request(handle.port, 'GET', '/posts');
+    assert.equal(res.status, 500);
+    assert.equal(res.headers['access-control-allow-origin'], '*');
+  } finally {
+    await handle.close();
+  }
+});
