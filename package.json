@@ -26,6 +26,7 @@
     "zero-dependency"
   ],
   "license": "MIT",
+  "author": "rishbCLN",
   "engines": {
     "node": ">=18"
   },
